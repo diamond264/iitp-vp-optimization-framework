@@ -1,0 +1,13 @@
+# Supply a local teacher model and a CSV that you are authorized to use.
+# No weights, tokenizer assets or datasets are distributed in this repository.
+teacher:
+  model_name: private_models/teacher
+  dtype: half
+  batch_size: 4
+  max_input_tokens: 2048
+data:
+  train_csv: private_data/train.csv
+  text_col: text
+  label_col: label
+distill:
+  teacher_temperature: 1.0

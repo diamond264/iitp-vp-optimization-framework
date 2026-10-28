@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# Teacher (HyperCLOVA-X 0.5B fine-tuned for voice phishing detection)
+# ---------------------------------------------------------------------------
+teacher:
+  model_name: private_models/teacher
+  dtype: half                    # fp16 forward pass
+  batch_size: 4                  # reduce if OOM during label extraction
+  max_input_tokens: 2048         # left-truncate long conversations
+
+# ---------------------------------------------------------------------------
+# Data
+# ---------------------------------------------------------------------------
+data:
+  # Raw dataset used for distillation (teacher labels are added here)
+  train_csv: private_data/train_teacher_labels.csv
+  # Original (no teacher labels):
+  # Use the same training rows as the KD condition for a controlled comparison.
+  text_col: text
+  label_col: label
+  teacher_p_col: teacher_p       # column written by teacher_labels.py
+  val_fraction: 0.05             # 5% of challenge for early stopping; test on test.csv
+
+# ---------------------------------------------------------------------------
+# Student (DistilKoBERT)
+# ---------------------------------------------------------------------------
+student:
+  hf_id: monologg/distilkobert
+  max_length: 512                # max tokens; most conversations fit in 512
+  dropout: 0.1
+  freeze_encoder: false          # true = train head only (faster, less data needed)
+
+# ---------------------------------------------------------------------------
+# Distillation hyperparameters
+# ---------------------------------------------------------------------------
+distill:
+  alpha: 0.0                     # weight on KD loss → pure hard-label CE
+  temperature: 2.0
+  teacher_temperature: 1.0
+
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+train:
+  epochs: 15
+  batch_size: 16
+  lr: 3.0e-5
+  weight_decay: 0.01
+  warmup_fraction: 0.1           # fraction of total steps used for linear warmup
+
+# ---------------------------------------------------------------------------
+# Run
+# ---------------------------------------------------------------------------
+run:
+  seed: 42
+  out_dir: outputs/hard_only_run
